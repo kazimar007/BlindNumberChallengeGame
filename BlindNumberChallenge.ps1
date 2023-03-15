@@ -266,6 +266,7 @@ function CheckIfLose {
     Returns: True if the user didn't win, false otherwise
 #>
 function CheckIfNotWin {
+    # TODO: Use a increment variable to check if the number is equal to the array length instead
     param(
         [string[]]$numbers
     )
