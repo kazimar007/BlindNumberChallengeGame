@@ -156,12 +156,11 @@ function PlaceNumber {
         # TODO: Show lose screen
     }
 
-    Write-Host "Enter the position where you want to place the number: "
     do {
+        Write-Host "Enter the position where you want to place the number: "
         $position = Read-Host
         LoadingAnimation
-    } while (CheckIfValidPosition -numbers $numbers -position $($position - 1))
-
+    } while ((CheckIfValidPosition -numbers $numbers -position $($position - 1)) -eq $true)
     $numbers[$($position - 1)] = $number
 
     return $numbers
@@ -191,8 +190,12 @@ function CheckIfAlreadyInArray {
 function CheckIfValidPosition {
     param(
         [string[]]$numbers,
-        [int]$position
+        [string]$position
     )
+
+    if (CheckIfIsANumber -number $position -eq $false) {
+        return $false
+    }
 
     if ((CheckIfNumberIsBetween -number $($position + 1) -min 1 -max $numbers.Count) -ne $true) {
         return $false
@@ -201,7 +204,7 @@ function CheckIfValidPosition {
     if ($numbers[$position] -ne "") {
         return $false
     }
-
+    
     for ($i = $position; $i -ge 0; $i--) {
         if ($numbers[$i] -ne "") {
             if ($numbers[$i] -gt $number) {
@@ -210,7 +213,7 @@ function CheckIfValidPosition {
             break
         }
     }
-
+    
     for ($i = $position; $i -lt $numbers.Count; $i++) {
         if ($numbers[$i] -ne "") {
             if ($numbers[$i] -lt $number) {
@@ -221,6 +224,25 @@ function CheckIfValidPosition {
     }
     
     return $true
+}
+
+<#
+    Function: CheckIfIsANumber
+    Description: Checks if a string is a number
+    Parameters: 
+        -number: The string to check
+    Returns: True if the string is a number, false otherwise
+#>
+function CheckIfIsANumber {
+    param(
+        [string]$number
+    )
+
+    if ($number -match "^[0-9]+$") {
+        return $true
+    } else {
+        return $false
+    }
 }
 
 <#
@@ -237,7 +259,9 @@ function CheckIfLose {
         [int]$number
     )
 
-    for ($i = 0; $i -lt $numbers.Count; $i++) {
+    $isEmpty = $true
+
+    <#for ($i = 0; $i -lt $numbers.Count; $i++) {
         if ($numbers[$i] -ne "") {
             if ($numbers[$i] -gt $number) {
                 return $true
@@ -255,7 +279,38 @@ function CheckIfLose {
         }
     }
 
-    return $false
+    return $false#>
+
+    for ($i = 0; $i -lt $numbers.Count; $i++) {
+        if ($numbers[$i] -eq "") {
+            if ($i -ne $numbers.Count-1) {
+                if ($numbers[$i+1] -ne "") {
+                    $isEmpty = $false
+                    if ($numbers[$i+1] -gt $number) {
+                        return $false
+                    }
+                }
+            }
+        }
+    }
+
+    for ($i = $numbers.Count-1; $i -ge 0; $i--) {
+        if ($numbers[$i] -eq "") {
+            if ($i -ne 0) {
+                if ($numbers[$i-1] -ne "") {
+                    $isEmpty = $false
+                    if ($numbers[$i-1] -lt $number) {
+                        return $false
+                    }
+                }
+            }
+        }
+    }
+
+    if ($isEmpty -eq $true) {
+        return $false
+    }
+    return $true
 }
 
 <#
@@ -295,9 +350,8 @@ function ChooseDifficulty {
 
     Write-Host "-- Choose Difficulty --`n"
 
-    Write-Host "Choose how many numbers will be on the game (Min: 2 & Max: 50) : "
-
     do {
+        Write-Host "Choose how many numbers will be on the game (Min: 2 & Max: 50) : "
         $difficulty = Read-Host
         LoadingAnimation
     } while ((CheckIfNumberIsBetween -number $difficulty -min 2 -max 50) -ne $true)
